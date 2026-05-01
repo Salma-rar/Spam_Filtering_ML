@@ -2,36 +2,52 @@ import streamlit as st
 import joblib
 import os
 
-# paths
+# =========================
+# Paths
+# =========================
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 model_dir = os.path.join(base_dir, "model")
 
+# =========================
+# Load Model Assets
+# =========================
 @st.cache_resource
 def load_assets():
-    model = joblib.load(os.path.join(model_dir, "spam_model.pkl"))
-    vectorizer = joblib.load(os.path.join(model_dir, "tfidf_vectorizer.pkl"))
-    scaler = joblib.load(os.path.join(model_dir, "scaler.pkl"))
-    return model, vectorizer, scaler
+    try:
+        model      = joblib.load(os.path.join(model_dir, "spam_model.pkl"))
+        vectorizer = joblib.load(os.path.join(model_dir, "tfidf_vectorizer.pkl"))
+        scaler     = joblib.load(os.path.join(model_dir, "scaler.pkl"))
+        return model, vectorizer, scaler
+    except FileNotFoundError as e:
+        st.error(f"❌ Model file not found: {e}\nRun `train_model.py` first.")
+        st.stop()
 
 model, vectorizer, scaler = load_assets()
 
+# =========================
 # UI
+# =========================
+st.set_page_config(page_title="Spam Classifier", page_icon="📩")
 st.title("📩 Spam Message Classifier")
+st.caption("Powered by MultinomialNB + TF-IDF (bigrams)")
 
-text = st.text_area("Enter your message")
+text = st.text_area("Enter your message", height=150, placeholder="Type a message here...")
 
-if st.button("Predict"):
+THRESHOLD = 0.7
 
+if st.button("🔍 Predict", use_container_width=True):
     if text.strip():
+        x_vec    = vectorizer.transform([text])
+        x_scaled = scaler.transform(x_vec)
+        prob     = model.predict_proba(x_scaled)[:, 1][0]
 
-        x = vectorizer.transform([text])
-        x = scaler.transform(x)
-
-        prob = model.predict_proba(x)[:, 1]
-
-        if prob[0] > 0.7:
-            st.error(f"🚨 SPAM ({prob[0]:.2%})")
+        st.divider()
+        if prob > THRESHOLD:
+            st.error(f"🚨 **SPAM** — Confidence: {prob:.2%}")
         else:
-            st.success(f"✅ HAM ({prob[0]:.2%})")
+            st.success(f"✅ **HAM** — Spam probability: {prob:.2%}")
+
+        # Progress bar for visual feedback
+        st.progress(float(prob), text=f"Spam score: {prob:.2%}")
     else:
-        st.warning("Enter text first")
+        st.warning("⚠️ Please enter a message first.")
