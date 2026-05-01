@@ -29,7 +29,7 @@ model, vectorizer, scaler = load_assets()
 # =========================
 st.set_page_config(page_title="Spam Classifier", page_icon="📩")
 st.title("📩 Spam Message Classifier")
-st.caption("Powered by MultinomialNB + TF-IDF (bigrams)")
+
 
 text = st.text_area("Enter your message", height=150, placeholder="Type a message here...")
 
