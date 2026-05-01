@@ -26,6 +26,28 @@ df = df.rename(columns={"spamORham": "label", "Message": "message"})
 df = df[["label", "message"]]
 # Drop nulls
 df.dropna(subset=["label", "message"], inplace=True)
+# Add gibberish/random spam examples
+gibberish_samples = pd.DataFrame({
+    "label": ["spam"] * 13,
+    "message": [
+        "asdfjkl123qwerty456",
+        "xyz789abc!@#$%",
+        "qqqqqqqqqqqqqqqqqqqq",
+        "1234567890abcdefghij",
+        "!@#$%^&*()_+{}|:<>?",
+        "aaabbbcccdddeeefffggg",
+        "zxcvbnmasdfghjklqwer",
+        "99999999999999999999",
+        "$$$$$$$$$$$$$$$$$$$$",
+        "rrrrttttyyyyuuuuiiii",
+        "salmaaa////////sddss",
+        "1234567890-987654323@",
+        "s     s",
+
+    ]
+})
+
+df = pd.concat([df, gibberish_samples], ignore_index=True)
 
 print(f"✅ Loaded {len(df)} rows | Spam: {df['label'].value_counts().get('spam', 0)} | Ham: {df['label'].value_counts().get('ham', 0)}")
 
