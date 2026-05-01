@@ -1,12 +1,16 @@
 import pandas as pd
 import joblib
 import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
 
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MaxAbsScaler
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import classification_report, accuracy_score
+from sklearn.linear_model import LogisticRegression
 
 # =========================
 # Paths
@@ -83,9 +87,10 @@ X_test_scaled  = scaler.transform(X_test_vec)
 # NOTE: MultinomialNB requires non-negative input.
 #       MaxAbsScaler preserves sign so values stay in [0,1] for TF-IDF → safe.
 # =========================
+
+
 model = MultinomialNB(alpha=0.1)
 model.fit(X_train_scaled, y_train)
-
 # =========================
 # Evaluation  (threshold 0.7 — consistent with notebook & app.py)
 # =========================
@@ -104,3 +109,17 @@ joblib.dump(vectorizer, os.path.join(model_path, "tfidf_vectorizer.pkl"))
 joblib.dump(scaler,     os.path.join(model_path, "scaler.pkl"))
 
 print("✅ Training done — 3 files saved to /model/")
+
+
+cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(6, 4))
+sns.heatmap(cm, annot=True, fmt='d', cmap='magma',
+            xticklabels=['Ham', 'Spam'],
+            yticklabels=['Ham', 'Spam'])
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+plt.tight_layout()
+plt.savefig('../model/confusion_matrix.png')
+plt.show()
+print("✅ Confusion matrix saved to /model/")
